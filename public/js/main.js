@@ -8,7 +8,6 @@
   var gameState = null;
   var roomCode = null;
   var username = null;
-  var mode = 'create';
 
   // DOM refs
   var joinOverlay = document.getElementById('join-overlay');
@@ -18,61 +17,53 @@
   var roomCodeGroup = document.getElementById('room-code-group');
   var createRoomBtn = document.getElementById('create-room-btn');
   var joinRoomBtn = document.getElementById('join-room-btn');
-  var connectBtn = document.getElementById('connect-btn');
   var gameInput = document.getElementById('game-input');
   var sendBtn = document.getElementById('send-btn');
+  var userCounter = 1;
 
   // --- Join Flow ---
 
   joinOverlay.style.display = '';
   gameContainer.style.display = 'none';
 
+  function getUsername() {
+    var name = (usernameInput.value || '').trim();
+    if (!name) {
+      name = 'USER ' + String(userCounter++).padStart(3, '0');
+    }
+    return name;
+  }
+
   createRoomBtn.addEventListener('click', function () {
-    mode = 'create';
-    roomCodeGroup.classList.add('hidden');
-    createRoomBtn.classList.add('selected');
-    joinRoomBtn.classList.remove('selected');
-    connectBtn.textContent = 'CREATE & CONNECT';
+    username = getUsername();
+    socket.emit('createRoom', { username: username }, function (res) {
+      if (res && res.roomCode) {
+        onConnected(res.roomCode, res.gameState);
+      } else {
+        alert('FAILED TO CREATE ROOM');
+      }
+    });
   });
 
   joinRoomBtn.addEventListener('click', function () {
-    mode = 'join';
-    roomCodeGroup.classList.remove('hidden');
-    joinRoomBtn.classList.add('selected');
-    createRoomBtn.classList.remove('selected');
-    connectBtn.textContent = 'CONNECT';
-    roomCodeInput.focus();
-  });
-
-  connectBtn.addEventListener('click', function () {
-    username = (usernameInput.value || '').trim();
-    if (!username) {
-      alert('ENTER A CALLSIGN');
+    if (roomCodeGroup.classList.contains('hidden')) {
+      roomCodeGroup.classList.remove('hidden');
+      roomCodeInput.focus();
       return;
     }
-
-    if (mode === 'create') {
-      socket.emit('createRoom', { username: username }, function (res) {
-        if (res && res.roomCode) {
-          onConnected(res.roomCode, res.gameState);
-        } else {
-          alert('FAILED TO CREATE ROOM');
-        }
-      });
-    } else {
-      var code = (roomCodeInput.value || '').trim().toUpperCase();
-      if (!code) {
-        alert('ENTER A ROOM CODE');
-        return;
-      }
-      socket.emit('joinRoom', { roomCode: code, username: username }, function (res) {
-        if (res && res.success !== false) {
-          onConnected(res.roomCode || code, res.gameState);
-        } else {
-          alert(res && res.message ? res.message : 'FAILED TO JOIN ROOM');
-        }
-      });
+    var code = (roomCodeInput.value || '').trim().toUpperCase();
+    if (!code) {
+      alert('ENTER A ROOM CODE');
+      return;
     }
+    username = getUsername();
+    socket.emit('joinRoom', { roomCode: code, username: username }, function (res) {
+      if (res && res.success !== false) {
+        onConnected(res.roomCode || code, res.gameState);
+      } else {
+        alert(res && res.error ? res.error : 'FAILED TO JOIN ROOM');
+      }
+    });
   });
 
   function onConnected(code, gs) {
@@ -198,14 +189,11 @@
 
   // Enter key in join overlay
   usernameInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') connectBtn.click();
+    if (e.key === 'Enter') createRoomBtn.click();
   });
   roomCodeInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') connectBtn.click();
+    if (e.key === 'Enter') joinRoomBtn.click();
   });
-
-  // Default to create mode
-  createRoomBtn.click();
 
   window.Main = {
     socket: socket,
