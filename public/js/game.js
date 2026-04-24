@@ -30,12 +30,11 @@
   /* ----------------------------------------------------------
      INIT
      ---------------------------------------------------------- */
-  function init(socket, gameState, playerState) {
+  function init(socket, gameState) {
     _socket = socket;
     launchStagesEl = document.getElementById('launch-stages');
     otherPlayersEl = document.getElementById('other-players');
     renderedMyState = null;
-    renderedOtherKeys = '';
     buildLaunchDisplay();
     showBriefing();
 
@@ -44,23 +43,14 @@
       window.WorldMap.init();
     }
 
-    if (playerState) {
-      renderPlayerState(playerState);
+    if (gameState) {
+      updateMyDisplay(gameState);
     }
 
     if (socket) {
       socket.on('guessResult', function (data) {
         clearBriefing();
-        if (data.player) renderPlayerState(data.player);
-        if (data.gameState) updateOtherPlayers(data.gameState.players, socket.id);
-      });
-
-      socket.on('playerJoined', function (data) {
-        if (data.gameState) updateOtherPlayers(data.gameState.players, socket.id);
-      });
-
-      socket.on('playerLeft', function (data) {
-        if (data.gameState) updateOtherPlayers(data.gameState.players, socket.id);
+        if (data.gameState) updateMyDisplay(data.gameState);
       });
     }
   }
@@ -222,14 +212,12 @@
   /* ----------------------------------------------------------
      UPDATE LAUNCH SEQUENCE (public API)
      ---------------------------------------------------------- */
-  function updateLaunchSequence(gameState, mySocketId) {
-    if (!launchStagesEl || !otherPlayersEl) init(null);
-    if (!gameState || !gameState.players) return;
+  function updateLaunchSequence(gameState) {
+    if (!launchStagesEl) init(null);
+    if (!gameState) return;
 
-    var me = gameState.players[mySocketId];
-    if (me) updateMyDisplay(me);
-
-    updateOtherPlayers(gameState.players, mySocketId);
+    // Shared game state — fields are directly on gameState
+    updateMyDisplay(gameState);
   }
 
   /* ----------------------------------------------------------

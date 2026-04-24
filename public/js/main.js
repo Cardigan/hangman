@@ -5,7 +5,6 @@
   var socket = io();
   var mySocketId = null;
   var gameState = null;
-  var playerState = null;
   var roomCode = null;
   var username = null;
   var mode = 'create';
@@ -54,7 +53,7 @@
     if (mode === 'create') {
       socket.emit('createRoom', { username: username }, function (res) {
         if (res && res.roomCode) {
-          onConnected(res.roomCode, res.gameState, res.playerState);
+          onConnected(res.roomCode, res.gameState);
         } else {
           alert('FAILED TO CREATE ROOM');
         }
@@ -67,7 +66,7 @@
       }
       socket.emit('joinRoom', { roomCode: code, username: username }, function (res) {
         if (res && res.success !== false) {
-          onConnected(res.roomCode || code, res.gameState, res.playerState);
+          onConnected(res.roomCode || code, res.gameState);
         } else {
           alert(res && res.message ? res.message : 'FAILED TO JOIN ROOM');
         }
@@ -75,10 +74,9 @@
     }
   });
 
-  function onConnected(code, gs, ps) {
+  function onConnected(code, gs) {
     roomCode = code;
     gameState = gs;
-    playerState = ps;
     mySocketId = socket.id;
 
     joinOverlay.style.display = 'none';
@@ -93,13 +91,13 @@
     }
 
     if (window.Game) {
-      Game.init(socket, gameState, playerState);
+      Game.init(socket, gameState);
     }
     if (window.WordDisplay) {
       WordDisplay.init();
     }
 
-    updateAllDisplays(gameState, playerState);
+    updateAllDisplays(gameState);
   }
 
   // --- Input Routing ---
@@ -134,15 +132,14 @@
 
   socket.on('guessResult', function (data) {
     gameState = data.gameState || gameState;
-    playerState = data.player || playerState;
 
     if (window.Chat) {
       Chat.addGuessMessage(data.username, data.letter, data.hit);
     }
 
-    updateAllDisplays(gameState, playerState);
+    updateAllDisplays(gameState);
 
-    if (data.gameOver && data.username === username) {
+    if (data.gameOver) {
       var msg = data.won ? 'LAUNCH SEQUENCE ABORTED — WORD DECODED' : 'LAUNCH CONFIRMED — DETONATION IMMINENT';
       if (window.Chat) Chat.addSystemMessage(msg);
       if (window.Game) {
@@ -152,24 +149,19 @@
           Game.showLoseScreen();
         }
       }
-    } else if (data.gameOver) {
-      var otherMsg = data.won
-        ? data.username + ' ABORTED THEIR LAUNCH'
-        : data.username + ' FAILED — MISSILE LAUNCHED';
-      if (window.Chat) Chat.addSystemMessage(otherMsg);
     }
   });
 
   socket.on('playerJoined', function (data) {
     if (data.gameState) gameState = data.gameState;
     if (window.Chat) Chat.addSystemMessage(data.username + ' HAS CONNECTED');
-    updateAllDisplays(gameState, playerState);
+    updateAllDisplays(gameState);
   });
 
   socket.on('playerLeft', function (data) {
     if (data.gameState) gameState = data.gameState;
     if (window.Chat) Chat.addSystemMessage(data.username + ' HAS DISCONNECTED');
-    updateAllDisplays(gameState, playerState);
+    updateAllDisplays(gameState);
   });
 
   socket.on('guessError', function (data) {
@@ -178,12 +170,12 @@
 
   // --- Display Helper ---
 
-  function updateAllDisplays(gs, ps) {
+  function updateAllDisplays(gs) {
     if (window.Game && typeof Game.updateLaunchSequence === 'function') {
-      Game.updateLaunchSequence(gs, mySocketId);
+      Game.updateLaunchSequence(gs);
     }
     if (window.WordDisplay && typeof WordDisplay.update === 'function') {
-      WordDisplay.update(gs, mySocketId);
+      WordDisplay.update(gs);
     }
   }
 

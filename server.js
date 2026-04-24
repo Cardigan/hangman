@@ -33,8 +33,7 @@ io.on('connection', (socket) => {
     if (typeof cb === 'function') {
       cb({
         roomCode,
-        gameState: gameManager.getRoomPublicState(roomCode),
-        playerState: gameManager.getPlayerState(roomCode, socket.id)
+        gameState: gameManager.getRoomPublicState(roomCode)
       });
     }
   });
@@ -54,12 +53,12 @@ io.on('connection', (socket) => {
 
     const publicState = gameManager.getRoomPublicState(roomCode);
     io.to(roomCode).emit('playerJoined', { username, gameState: publicState });
-    console.log(`[joinRoom] ${username} joined room ${roomCode} (word: ${result.player.word})`);
+    console.log(`[joinRoom] ${username} joined room ${roomCode}`);
     if (typeof cb === 'function') {
       cb({
         success: true,
-        gameState: publicState,
-        playerState: gameManager.getPlayerState(roomCode, socket.id)
+        roomCode,
+        gameState: publicState
       });
     }
   });
@@ -75,20 +74,23 @@ io.on('connection', (socket) => {
     }
 
     const room = gameManager.getRoom(roomCode);
-    const playerWord = room && room.players[socket.id] ? room.players[socket.id].word : '???';
-    console.log(`[guess] ${username} guessed "${letter}" in room ${roomCode} — ${result.hit ? 'HIT' : 'MISS'} (word: ${playerWord}, progress: ${result.player.maskedWord.map(c => c || '_').join('')})`);
+    console.log(`[guess] ${username} guessed "${letter}" in room ${roomCode} — ${result.hit ? 'HIT' : 'MISS'} (word: ${room.word}, progress: ${gameManager.getRoomPublicState(roomCode).maskedWord.map(c => c || '_').join('')})`);
 
+    const gameState = gameManager.getRoomPublicState(roomCode);
     io.to(roomCode).emit('guessResult', {
       username,
-      ...result,
-      gameState: gameManager.getRoomPublicState(roomCode)
+      hit: result.hit,
+      letter: result.letter,
+      gameOver: result.gameOver,
+      won: result.won,
+      gameState
     });
 
     // Hacker bot taunt with a delayed "response" feel
     const taunt = hackerBot.getTaunt({
       username,
       hit: result.hit,
-      launchStage: result.player.launchStage,
+      launchStage: gameState.launchStage,
       gameOver: result.gameOver,
       won: result.won
     });
@@ -105,8 +107,7 @@ io.on('connection', (socket) => {
     }
     if (typeof cb === 'function') {
       cb({
-        gameState: gameManager.getRoomPublicState(roomCode),
-        playerState: gameManager.getPlayerState(roomCode, socket.id)
+        gameState: gameManager.getRoomPublicState(roomCode)
       });
     }
   });

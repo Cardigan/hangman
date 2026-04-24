@@ -73,46 +73,33 @@ window.WordDisplay = (function () {
     }
   }
 
-  function update(gameState, mySocketId) {
+  function update(gameState) {
     if (!container) return;
-    if (!gameState || !gameState.players || typeof gameState.players !== 'object') {
+    if (!gameState || !gameState.maskedWord) {
       container.innerHTML = '';
       playerRows = {};
       return;
     }
 
-    var players = gameState.players;
-    var activeSids = {};
+    // Shared word — one word for the whole room
+    var sid = 'shared';
+    var masked = gameState.maskedWord || [];
 
-    var sids = Object.keys(players);
-    for (var pi = 0; pi < sids.length; pi++) {
-      var sid = sids[pi];
-      var p = players[sid];
-      activeSids[sid] = true;
-      var masked = p.maskedWord || [];
-
-      if (!playerRows[sid]) {
-        playerRows[sid] = createRow(p);
-        container.appendChild(playerRows[sid].el);
-      }
-
-      var row = playerRows[sid];
-
-      // Update label
-      row.label.textContent = p.username || 'UNKNOWN';
-      if (sid === mySocketId) {
-        row.label.classList.add('player-label-me');
-      } else {
-        row.label.classList.remove('player-label-me');
-      }
-
-      reconcileSlots(row, masked, p);
-      updateBadge(row, p);
+    if (!playerRows[sid]) {
+      playerRows[sid] = createRow({ username: 'ABORT CODE' });
+      container.appendChild(playerRows[sid].el);
     }
 
-    // Remove departed players
+    var row = playerRows[sid];
+    row.label.textContent = 'ABORT CODE';
+    row.label.classList.add('player-label-me');
+
+    reconcileSlots(row, masked, gameState);
+    updateBadge(row, gameState);
+
+    // Remove any old per-player rows
     for (var id in playerRows) {
-      if (!activeSids[id]) {
+      if (id !== sid) {
         container.removeChild(playerRows[id].el);
         delete playerRows[id];
       }
