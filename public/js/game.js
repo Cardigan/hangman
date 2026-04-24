@@ -24,6 +24,8 @@
   // Track rendered state to avoid unnecessary DOM rebuilds
   var renderedMyState = null;
   var renderedOtherKeys = '';
+  var briefingActive = false;
+  var briefingContainer = null;
 
   /* ----------------------------------------------------------
      INIT
@@ -35,6 +37,12 @@
     renderedMyState = null;
     renderedOtherKeys = '';
     buildLaunchDisplay();
+    showBriefing();
+
+    // Initialize world map background canvas
+    if (window.WorldMap) {
+      window.WorldMap.init();
+    }
 
     if (playerState) {
       renderPlayerState(playerState);
@@ -42,6 +50,7 @@
 
     if (socket) {
       socket.on('guessResult', function (data) {
+        clearBriefing();
         if (data.player) renderPlayerState(data.player);
         if (data.gameState) updateOtherPlayers(data.gameState.players, socket.id);
       });
@@ -54,6 +63,87 @@
         if (data.gameState) updateOtherPlayers(data.gameState.players, socket.id);
       });
     }
+  }
+
+  /* ----------------------------------------------------------
+     BRIEFING — Intro typewriter sequence
+     ---------------------------------------------------------- */
+  var BRIEFING_LINES = [
+    { text: 'NORAD DEFENSE NETWORK \u2014 PRIORITY ALPHA', cls: 'briefing-header' },
+    { text: '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501', cls: 'briefing-divider' },
+    { text: '', cls: 'briefing-blank' },
+    { text: 'ALERT: UNAUTHORIZED LAUNCH SEQUENCE DETECTED', cls: 'briefing-highlight' },
+    { text: 'ORIGIN: UNKNOWN HOSTILE ACTOR', cls: '' },
+    { text: '', cls: 'briefing-blank' },
+    { text: 'AN ICBM LAUNCH HAS BEEN INITIATED.', cls: '' },
+    { text: 'YOU MUST DECODE THE ABORT PASSWORD TO STOP IT.', cls: 'briefing-highlight' },
+    { text: '', cls: 'briefing-blank' },
+    { text: '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 TERMINAL CONTROLS \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501', cls: 'briefing-divider' },
+    { text: '', cls: 'briefing-blank' },
+    { text: 'TYPE ?X TO GUESS A LETTER  (e.g. ?A, ?E, ?T)', cls: 'briefing-highlight' },
+    { text: 'ALL OTHER INPUT GOES TO CHAT', cls: '' },
+    { text: '', cls: 'briefing-blank' },
+    { text: '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 MISSION PARAMETERS \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501', cls: 'briefing-divider' },
+    { text: '', cls: 'briefing-blank' },
+    { text: 'WRONG GUESSES REMAINING: 7', cls: '' },
+    { text: 'EACH WRONG GUESS ADVANCES THE LAUNCH SEQUENCE', cls: '' },
+    { text: '7 WRONG GUESSES = NUCLEAR LAUNCH \u2014 GAME OVER', cls: 'briefing-highlight' },
+    { text: '', cls: 'briefing-blank' },
+    { text: 'THE FATE OF MILLIONS DEPENDS ON YOU.', cls: '' },
+    { text: 'GOOD LUCK, OPERATIVE.', cls: 'briefing-header' }
+  ];
+
+  function showBriefing() {
+    if (!launchStagesEl) return;
+
+    // Hide the launch display while briefing is active
+    var children = launchStagesEl.children;
+    for (var i = 0; i < children.length; i++) {
+      children[i].style.display = 'none';
+    }
+
+    briefingContainer = document.createElement('div');
+    briefingContainer.className = 'briefing-container';
+    launchStagesEl.insertBefore(briefingContainer, launchStagesEl.firstChild);
+    briefingActive = true;
+
+    BRIEFING_LINES.forEach(function (line, idx) {
+      setTimeout(function () {
+        if (!briefingActive) return;
+        var el = document.createElement('div');
+        var classes = 'briefing-line';
+        if (line.cls) classes += ' ' + line.cls;
+        el.className = classes;
+        if (line.text) {
+          el.textContent = '> ' + line.text;
+        }
+        briefingContainer.appendChild(el);
+        // Trigger visibility after a frame
+        requestAnimationFrame(function () {
+          el.classList.add('visible');
+        });
+      }, idx * 120);
+    });
+  }
+
+  function clearBriefing() {
+    if (!briefingActive || !briefingContainer) return;
+    briefingActive = false;
+
+    briefingContainer.classList.add('briefing-fade-out');
+    setTimeout(function () {
+      if (briefingContainer && briefingContainer.parentNode) {
+        briefingContainer.parentNode.removeChild(briefingContainer);
+      }
+      briefingContainer = null;
+      // Restore launch display children
+      if (launchStagesEl) {
+        var children = launchStagesEl.children;
+        for (var i = 0; i < children.length; i++) {
+          children[i].style.display = '';
+        }
+      }
+    }, 500);
   }
 
   /* ----------------------------------------------------------
@@ -156,6 +246,11 @@
     if (stateKey === renderedMyState) return;
     renderedMyState = stateKey;
 
+    // Update world map escalation
+    if (window.WorldMap) {
+      window.WorldMap.setStage(stage);
+    }
+
     var endstate = document.getElementById('launch-endstate');
 
     if (status === 'won') {
@@ -204,6 +299,118 @@
     if (guessedEl) {
       guessedEl.textContent = 'GUESSED LETTERS: ' +
         (guessed.length > 0 ? guessed.join(', ') : '\u2014');
+    }
+
+    // Update consequence messages
+    updateConsequences(stage, status);
+  }
+
+  /* ----------------------------------------------------------
+     CONSEQUENCE ESCALATION DATA
+     ---------------------------------------------------------- */
+  var CONSEQUENCE_MESSAGES = [
+    [], // Stage 0: no misses
+    [ // Stage 1: SAFETY DISENGAGED
+      { text: 'INITIAL TARGET ASSESSMENT: 14 CITIES', level: 'green' },
+      { text: 'PROJECTED CIVILIAN CASUALTIES: CALCULATING...', level: 'green' }
+    ],
+    [ // Stage 2: TARGETING LOCKED
+      { text: 'PRIMARY TARGETS: WASHINGTON DC, NEW YORK, CHICAGO, LOS ANGELES', level: 'amber' },
+      { text: 'PROJECTED CASUALTIES: 28,000,000', level: 'amber' }
+    ],
+    [ // Stage 3: PRIMER READY
+      { text: 'SECONDARY TARGETS: SEATTLE, HOUSTON, MIAMI, BOSTON, DENVER, ATLANTA', level: 'amber' },
+      { text: 'PROJECTED CASUALTIES: 67,000,000', level: 'amber' },
+      { text: 'NUCLEAR WINTER PROBABILITY: 43%', level: 'amber' }
+    ],
+    [ // Stage 4: PREFLIGHT CHECKED
+      { text: 'RETALIATORY STRIKE AUTHORIZED', level: 'red' },
+      { text: 'MUTUAL ASSURED DESTRUCTION PROTOCOL ENGAGED', level: 'red' },
+      { text: 'PROJECTED GLOBAL CASUALTIES: 150,000,000', level: 'red' }
+    ],
+    [ // Stage 5: WARHEAD ARMED
+      { text: 'ESTIMATED AFTERMATH: GLOBAL CROP FAILURE 3-5 YEARS', level: 'red' },
+      { text: 'INFRASTRUCTURE COLLAPSE: COMPLETE', level: 'red' },
+      { text: 'CIVILIZATION RECOVERY TIME: UNKNOWN', level: 'red' }
+    ],
+    [ // Stage 6: READY TO FIRE
+      { text: '\u26A0 THIS IS YOUR LAST CHANCE \u26A0', level: 'critical' },
+      { text: 'ONE MORE FAILED ATTEMPT = TOTAL NUCLEAR WAR', level: 'critical' },
+      { text: 'PROJECTED EXTINCTION EVENT PROBABILITY: 67%', level: 'critical' }
+    ]
+  ];
+
+  var renderedConsequenceStage = -1;
+
+  /* ----------------------------------------------------------
+     UPDATE CONSEQUENCES DISPLAY
+     ---------------------------------------------------------- */
+  function updateConsequences(stage, status) {
+    if (status === 'won' || status === 'lost') {
+      var existing = document.getElementById('consequence-display');
+      if (existing) existing.classList.add('hidden');
+      renderedConsequenceStage = -1;
+      return;
+    }
+
+    if (stage === renderedConsequenceStage) return;
+    renderedConsequenceStage = stage;
+
+    var container = document.getElementById('consequence-display');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'consequence-display';
+      launchStagesEl.parentNode.insertBefore(container, launchStagesEl.nextSibling);
+    }
+
+    if (stage === 0) {
+      container.classList.add('hidden');
+      return;
+    }
+
+    container.classList.remove('hidden');
+    container.innerHTML = '';
+
+    // Header
+    var header = document.createElement('div');
+    header.className = 'consequence-header';
+    header.textContent = '\u2550\u2550\u2550 DEFCON ANALYSIS \u2550\u2550\u2550';
+    container.appendChild(header);
+
+    // Determine overall threat class
+    var threatClass = 'consequence-level-green';
+    if (stage >= 5) threatClass = 'consequence-level-critical';
+    else if (stage >= 4) threatClass = 'consequence-level-red';
+    else if (stage >= 2) threatClass = 'consequence-level-amber';
+    container.className = 'consequence-display ' + threatClass;
+
+    // Accumulate all messages up to current stage
+    var animDelay = 0;
+    for (var s = 1; s <= stage && s < CONSEQUENCE_MESSAGES.length; s++) {
+      var msgs = CONSEQUENCE_MESSAGES[s];
+      var isNewStage = (s === stage);
+
+      for (var m = 0; m < msgs.length; m++) {
+        var line = document.createElement('div');
+        line.className = 'consequence-line consequence-' + msgs[m].level;
+        line.textContent = '> ' + msgs[m].text;
+
+        if (isNewStage) {
+          line.classList.add('consequence-new');
+          line.style.animationDelay = (animDelay * 120) + 'ms';
+          animDelay++;
+        }
+
+        container.appendChild(line);
+      }
+
+      // Separator between stages
+      if (s < stage) {
+        var sep = document.createElement('div');
+        sep.className = 'consequence-separator';
+        sep.textContent = '\u2500\u2500\u2500';
+        container.appendChild(sep);
+      }
     }
   }
 

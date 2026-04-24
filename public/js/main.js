@@ -84,6 +84,8 @@
     joinOverlay.style.display = 'none';
     gameContainer.style.display = '';
 
+    gameInput.focus();
+
     if (window.Chat) {
       Chat.init(socket);
       Chat.updateRoomCode(roomCode);
@@ -114,6 +116,7 @@
     }
 
     gameInput.value = '';
+    gameInput.focus();
   }
 
   gameInput.addEventListener('keydown', function (e) {

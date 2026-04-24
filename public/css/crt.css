@@ -11,6 +11,9 @@
   --green-muted: #00661a;
   --green-faint: #003d10;
   --green-border: #005f1a;
+  --orange: #ffa500;
+  --orange-dim: #cc8400;
+  --orange-glow: 0 0 4px #ffa500, 0 0 8px #cc8400;
   --amber: #ffaa00;
   --red: #ff3333;
   --bg: #000a00;
@@ -181,6 +184,25 @@ html, body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  position: relative;
+}
+
+/* World map canvas — sits behind launch stages content */
+.world-map-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#title-area,
+#launch-stages,
+#other-players {
+  position: relative;
+  z-index: 1;
 }
 
 #title-area h1 {
@@ -206,6 +228,114 @@ html, body {
   padding: 3px 8px;
   border-left: 3px solid transparent;
   transition: all 0.3s ease;
+}
+
+/* Consequence / DEFCON analysis display */
+#consequence-display,
+.consequence-display {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--green-border);
+  background: rgba(0, 10, 0, 0.7);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-y: auto;
+  max-height: 200px;
+  transition: border-color 0.4s ease, background 0.4s ease;
+}
+
+#consequence-display.hidden {
+  display: none;
+}
+
+.consequence-header {
+  color: var(--green-dim);
+  text-align: center;
+  margin-bottom: 6px;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.consequence-separator {
+  color: var(--green-dark);
+  opacity: 0.4;
+  margin: 2px 0;
+  font-size: 10px;
+}
+
+/* Color escalation levels */
+.consequence-green {
+  color: var(--green);
+  text-shadow: 0 0 4px var(--green-dark);
+}
+
+.consequence-amber {
+  color: var(--amber);
+  text-shadow: 0 0 4px rgba(255, 170, 0, 0.3);
+}
+
+.consequence-red {
+  color: var(--red);
+  text-shadow: 0 0 4px rgba(255, 51, 51, 0.3);
+}
+
+.consequence-critical {
+  color: #ff0000;
+  font-weight: bold;
+  text-shadow: 0 0 6px rgba(255, 0, 0, 0.5), 0 0 12px rgba(255, 0, 0, 0.2);
+}
+
+/* Container border color by threat level */
+.consequence-level-green {
+  border-color: var(--green-border);
+}
+
+.consequence-level-amber {
+  border-color: rgba(255, 170, 0, 0.4);
+  background: rgba(20, 12, 0, 0.7);
+}
+
+.consequence-level-red {
+  border-color: rgba(255, 51, 51, 0.4);
+  background: rgba(20, 0, 0, 0.7);
+}
+
+.consequence-level-critical {
+  border-color: rgba(255, 0, 0, 0.6);
+  background: rgba(30, 0, 0, 0.8);
+  animation: consequence-border-pulse 1.2s ease-in-out infinite;
+}
+
+/* Typewriter / fade-in for new messages */
+.consequence-new {
+  animation: consequence-fadein 0.4s ease-out both;
+}
+
+@keyframes consequence-fadein {
+  0% {
+    opacity: 0;
+    transform: translateX(-8px);
+    text-shadow: 0 0 12px currentColor;
+  }
+  50% {
+    text-shadow: 0 0 16px currentColor, 0 0 24px currentColor;
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes consequence-border-pulse {
+  0%, 100% {
+    border-color: rgba(255, 0, 0, 0.6);
+    box-shadow: inset 0 0 8px rgba(255, 0, 0, 0.05);
+  }
+  50% {
+    border-color: rgba(255, 0, 0, 0.9);
+    box-shadow: inset 0 0 16px rgba(255, 0, 0, 0.1);
+  }
 }
 
 /* Other players panel */
@@ -332,16 +462,16 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 255, 65, 0.03);
-  border: 1px solid var(--green-border);
+  background: rgba(255, 165, 0, 0.03);
+  border: 1px solid var(--orange-dim);
   padding: 6px 12px;
 }
 
 .prompt-prefix {
-  color: var(--green);
+  color: var(--orange);
   font-size: 16px;
   font-weight: bold;
-  text-shadow: var(--glow-subtle);
+  text-shadow: var(--orange-glow);
   flex-shrink: 0;
   user-select: none;
 }
@@ -351,16 +481,16 @@ html, body {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--green);
+  color: var(--orange);
   font-family: var(--font-mono);
   font-size: 14px;
   text-transform: uppercase;
-  caret-color: var(--green);
+  caret-color: var(--orange);
   letter-spacing: 1px;
 }
 
 #game-input::placeholder {
-  color: var(--green-muted);
+  color: var(--orange-dim);
   text-transform: uppercase;
   font-size: 12px;
 }
@@ -399,6 +529,20 @@ button:active {
   flex-shrink: 0;
   padding: 6px 14px;
   font-size: 12px;
+  color: var(--orange);
+  border-color: var(--orange-dim);
+  text-shadow: var(--orange-glow);
+}
+
+#send-btn:hover {
+  background: var(--orange);
+  color: #000;
+  text-shadow: none;
+  box-shadow: 0 0 12px var(--orange-dim), 0 0 24px rgba(255, 165, 0, 0.2);
+}
+
+#send-btn:active {
+  background: var(--orange-dim);
 }
 
 /* ============================================================
@@ -1155,4 +1299,54 @@ button:active {
   background: rgba(0, 255, 65, 0.08);
   border-color: var(--green);
   text-shadow: var(--glow);
+}
+
+/* ============================================================
+   BRIEFING — Intro typewriter text
+   ============================================================ */
+
+.briefing-container {
+  padding: 8px 0;
+}
+
+.briefing-line {
+  color: var(--green-dim);
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: 1px;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: pre;
+}
+
+.briefing-line.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.briefing-header {
+  color: var(--green);
+  font-weight: bold;
+  text-shadow: var(--glow-subtle);
+}
+
+.briefing-divider {
+  color: var(--green-dark);
+  text-shadow: none;
+}
+
+.briefing-highlight {
+  color: var(--green);
+  font-weight: bold;
+  text-shadow: var(--glow-subtle);
+}
+
+.briefing-blank {
+  height: 1.5em;
+}
+
+.briefing-container.briefing-fade-out {
+  opacity: 0;
+  transition: opacity 0.5s ease;
 }
