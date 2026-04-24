@@ -61,12 +61,13 @@
     </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="js/main.js"></script>
+  <script src="/socket.io/socket.io.js"
+    onerror="var s=document.createElement('script');s.src='https://cdn.socket.io/4.8.1/socket.io.min.js';s.onload=function(){window.__ioReady&&window.__ioReady()};document.head.appendChild(s)"></script>
   <script src="js/worldMap.js"></script>
   <script src="js/game.js"></script>
   <script src="js/wordDisplay.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/animations.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

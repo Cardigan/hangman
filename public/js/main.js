@@ -2,8 +2,9 @@
 (function () {
   'use strict';
 
-  var socket = io();
-  var mySocketId = null;
+  function boot() {
+    var socket = io();
+    var mySocketId = null;
   var gameState = null;
   var roomCode = null;
   var username = null;
@@ -179,8 +180,6 @@
     }
   }
 
-  // --- Export ---
-
   // Copy room code on click
   document.getElementById('room-info').addEventListener('click', function () {
     var code = this.getAttribute('data-code');
@@ -213,4 +212,14 @@
     get roomCode() { return roomCode; },
     get username() { return username; }
   };
+
+  } // end boot()
+
+  // If io is already loaded (local socket.io served), boot immediately.
+  // Otherwise wait for CDN fallback to load it.
+  if (typeof io !== 'undefined') {
+    boot();
+  } else {
+    window.__ioReady = boot;
+  }
 })();
