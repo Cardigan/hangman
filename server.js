@@ -3,6 +3,7 @@ const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
 const { GameManager } = require('./lib/gameManager');
+const hackerBot = require('./lib/hackerBot');
 
 const app = express();
 const server = http.createServer(app);
@@ -80,6 +81,18 @@ io.on('connection', (socket) => {
       ...result,
       gameState: gameManager.getRoomPublicState(roomCode)
     });
+
+    // Hacker bot taunt with a delayed "response" feel
+    const taunt = hackerBot.getTaunt({
+      username,
+      hit: result.hit,
+      launchStage: result.player.launchStage,
+      gameOver: result.gameOver,
+      won: result.won
+    });
+    setTimeout(() => {
+      io.to(roomCode).emit('hackerMessage', { message: taunt });
+    }, 1000 + Math.random() * 2000);
   });
 
   socket.on('getGameState', (_, cb) => {

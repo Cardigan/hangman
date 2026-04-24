@@ -1,0 +1,561 @@
+/* ============================================================
+   WOPR CRT TERMINAL — Global Thermonuclear War
+   Retro green phosphor CRT aesthetic
+   ============================================================ */
+
+/* --- CSS Custom Properties --- */
+:root {
+  --green: #00ff41;
+  --green-dim: #00cc33;
+  --green-dark: #009922;
+  --green-muted: #00661a;
+  --green-faint: #003d10;
+  --green-border: #005f1a;
+  --amber: #ffaa00;
+  --red: #ff3333;
+  --bg: #000a00;
+  --bg-panel: #000d00;
+  --bg-overlay: rgba(0, 0, 0, 0.88);
+  --font-mono: 'Courier New', 'Lucida Console', Monaco, monospace;
+  --glow: 0 0 5px #00ff41, 0 0 10px #00ff41, 0 0 20px #00cc33, 0 0 40px #009922;
+  --glow-subtle: 0 0 4px #00ff41, 0 0 8px #00cc33;
+  --glow-bright: 0 0 6px #00ff41, 0 0 12px #00ff41, 0 0 24px #00cc33, 0 0 48px #009922, 0 0 80px #005f1a;
+}
+
+/* --- Reset & Base --- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  cursor: default;
+}
+
+::selection {
+  background: var(--green);
+  color: #000;
+}
+
+/* --- Scrollbar Styling --- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--green-dark);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--green-dim);
+}
+
+/* ============================================================
+   CRT WRAPPER & EFFECTS
+   ============================================================ */
+
+.crt {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  animation: flicker 0.08s infinite alternate;
+  border-radius: 12px;
+}
+
+/* Scanlines overlay */
+.crt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Moving scanline bar */
+.crt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    0deg,
+    transparent 0%,
+    rgba(0, 255, 65, 0.03) 50%,
+    transparent 100%
+  );
+  background-size: 100% 8px;
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 1001;
+}
+
+/* Screen curvature illusion via vignette */
+.crt > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   KEYFRAME ANIMATIONS
+   ============================================================ */
+
+@keyframes flicker {
+  0%   { opacity: 0.97; }
+  50%  { opacity: 1.0; }
+  100% { opacity: 0.98; }
+}
+
+@keyframes textGlow {
+  0%   { text-shadow: var(--glow-subtle); }
+  50%  { text-shadow: var(--glow); }
+  100% { text-shadow: var(--glow-subtle); }
+}
+
+@keyframes blink {
+  0%, 49%  { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   GAME CONTAINER — 3-Zone Grid Layout
+   ============================================================ */
+
+#game-container {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  width: 100%;
+  height: 100vh;
+}
+
+#top-section {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* --- Zone 1: Main Area --- */
+#main-area {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px;
+  overflow: hidden;
+  border-right: 1px solid var(--green-border);
+  border-bottom: 1px solid var(--green-border);
+}
+
+#launch-status {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#title-area h1 {
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: var(--green);
+  text-shadow: var(--glow);
+  animation: textGlow 3s ease-in-out infinite;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--green-dark);
+  padding-bottom: 8px;
+}
+
+/* Launch stages list */
+#launch-stages {
+  list-style: none;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+#launch-stages > * {
+  padding: 3px 8px;
+  border-left: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+/* Other players panel */
+#other-players {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--green-border);
+  font-size: 12px;
+  color: var(--green-dim);
+  overflow-y: auto;
+  max-height: 30%;
+}
+
+#other-players > * {
+  padding: 4px 8px;
+  margin-bottom: 2px;
+}
+
+/* --- Zone 2: Chat Panel --- */
+#chat-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--green-border);
+  overflow: hidden;
+}
+
+#room-info {
+  padding: 14px 16px;
+  text-align: center;
+  color: var(--green);
+  border: 1px solid var(--green-border);
+  border-bottom: 2px solid var(--green-dim);
+  background: rgba(0, 255, 65, 0.04);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#room-info:hover {
+  background: rgba(0, 255, 65, 0.08);
+  box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.06);
+}
+
+#room-info.copied {
+  background: rgba(0, 255, 65, 0.12);
+}
+
+#room-info .room-label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--green-dim);
+  display: block;
+}
+
+#room-info .room-code {
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: 10px;
+  font-family: var(--font-mono);
+  color: var(--green);
+  text-shadow: var(--glow);
+  animation: textGlow 3s ease-in-out infinite;
+  display: block;
+  padding: 4px 0;
+}
+
+#room-info .room-copy-hint {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--green-dark);
+  opacity: 0;
+  transition: opacity 0.3s;
+  display: block;
+}
+
+#room-info:hover .room-copy-hint {
+  opacity: 1;
+}
+
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  line-height: 1.5;
+  scroll-behavior: smooth;
+}
+
+#chat-messages > * {
+  animation: fadeIn 0.2s ease;
+}
+
+/* --- Zone 3: Bottom Bar --- */
+#bottom-bar {
+  border-top: 1px solid var(--green-border);
+  background: var(--bg-panel);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Word display area */
+#word-area {
+  font-size: 28px;
+  letter-spacing: 10px;
+  text-align: center;
+  color: var(--green);
+  text-shadow: var(--glow);
+  padding: 8px 0;
+  min-height: 44px;
+  animation: textGlow 4s ease-in-out infinite;
+}
+
+/* Terminal input bar */
+#input-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 255, 65, 0.03);
+  border: 1px solid var(--green-border);
+  padding: 6px 12px;
+}
+
+.prompt-prefix {
+  color: var(--green);
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: var(--glow-subtle);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+#game-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  text-transform: uppercase;
+  caret-color: var(--green);
+  letter-spacing: 1px;
+}
+
+#game-input::placeholder {
+  color: var(--green-muted);
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+button {
+  background: transparent;
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-shadow: var(--glow-subtle);
+}
+
+button:hover {
+  background: var(--green);
+  color: #000;
+  text-shadow: none;
+  box-shadow: 0 0 12px var(--green-dark), 0 0 24px rgba(0, 255, 65, 0.2);
+}
+
+button:active {
+  background: var(--green-dim);
+  transform: scale(0.97);
+}
+
+#send-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
+/* ============================================================
+   JOIN OVERLAY / MODAL
+   ============================================================ */
+
+#join-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(2px);
+}
+
+.join-modal {
+  background: var(--bg);
+  border: 1px solid var(--green-dim);
+  padding: 36px 40px;
+  max-width: 420px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 0 30px rgba(0, 255, 65, 0.08), inset 0 0 60px rgba(0, 255, 65, 0.02);
+}
+
+.join-title {
+  font-size: 20px;
+  text-align: center;
+  letter-spacing: 4px;
+  color: var(--green);
+  text-shadow: var(--glow);
+  animation: textGlow 3s ease-in-out infinite;
+  margin-bottom: 8px;
+}
+
+.join-modal label {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--green-dim);
+}
+
+.join-modal input[type="text"] {
+  background: transparent;
+  border: 1px solid var(--green-border);
+  border-bottom: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 8px 10px;
+  text-transform: uppercase;
+  outline: none;
+  letter-spacing: 2px;
+  caret-color: var(--green);
+  transition: border-color 0.2s;
+}
+
+.join-modal input[type="text"]:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.15);
+}
+
+.join-modal input[type="text"]::placeholder {
+  color: var(--green-muted);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.join-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.join-actions button {
+  flex: 1;
+}
+
+.join-actions button.selected {
+  background: rgba(0, 255, 65, 0.12);
+  border-color: var(--green);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+  color: var(--green);
+}
+
+#connect-btn {
+  margin-top: 4px;
+  font-size: 14px;
+  letter-spacing: 3px;
+  padding: 10px;
+  border-width: 2px;
+}
+
+#room-code-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ============================================================
+   STAGE STATUS CLASSES
+   ============================================================ */
+
+.stage-active {
+  color: var(--green);
+  text-shadow: var(--glow);
+  border-left-color: var(--green) !important;
+  background: rgba(0, 255, 65, 0.05);
+  animation: textGlow 2s ease-in-out infinite;
+}
+
+.stage-complete {
+  color: var(--green-dark);
+  text-shadow: none;
+  border-left-color: var(--green-dark) !important;
+  opacity: 0.7;
+}
+
+.stage-pending {
+  color: var(--green-faint);
+  text-shadow: none;
+  border-left-color: transparent !important;
+  opacity: 0.4;
+}
+
+/* ============================================================
+   CHAT MESSAGE CLASSES
+   ============================================================ */
+
+.system-message {
+  color: var(--green-dark);
+  font-style: italic;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.hacker-message {
+  color: var(--red);
+  text-shadow: 0 0 5px rgba(255, 51, 51, 0.5), 0 0 10px rgba(255, 51, 51, 0.25);
+}
+
+.player-message {
+  color: var(--green);
+}
+
+.guess-message {
+  color: var(--amber);
+  text-shadow: 0 0 4px rgba(255, 170, 0, 0.3);
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.hidden {
+  display: none !important;
+}

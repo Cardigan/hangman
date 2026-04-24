@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WOPR - Global Thermonuclear War</title>
+  <link rel="stylesheet" href="css/crt.css">
+</head>
+<body>
+  <div class="crt">
+
+    <!-- Join Modal -->
+    <div id="join-overlay">
+      <div class="join-modal">
+        <h1 class="join-title">SHALL WE PLAY A GAME?</h1>
+        <label for="username-input">IDENTIFY YOURSELF</label>
+        <input type="text" id="username-input" placeholder="Enter callsign..." autocomplete="off">
+        <div class="join-actions">
+          <button id="create-room-btn" type="button">CREATE ROOM</button>
+          <button id="join-room-btn" type="button">JOIN ROOM</button>
+        </div>
+        <div id="room-code-group" class="hidden">
+          <label for="room-code-input">ROOM CODE</label>
+          <input type="text" id="room-code-input" placeholder="Enter room code..." autocomplete="off">
+        </div>
+        <button id="connect-btn" type="button">CONNECT</button>
+      </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div id="game-container">
+
+      <!-- Zone 1 — Main Area + Zone 2 — Chat Panel -->
+      <div id="top-section">
+        <main id="main-area">
+          <div id="launch-status">
+            <header id="title-area">
+              <h1>NORAD MISSILE DEFENSE SYSTEM</h1>
+            </header>
+            <div id="launch-stages"></div>
+          </div>
+          <div id="other-players"></div>
+        </main>
+
+        <aside id="chat-panel">
+          <div id="room-info">ROOM: ____</div>
+          <div id="chat-messages"></div>
+        </aside>
+      </div>
+
+      <!-- Zone 3 — Bottom Bar -->
+      <footer id="bottom-bar">
+        <div id="word-area"></div>
+        <div id="input-bar">
+          <span class="prompt-prefix">&gt;</span>
+          <input type="text" id="game-input" placeholder="Type ?X to guess a letter, or type to chat..." autocomplete="off">
+          <button id="send-btn" type="button">SEND</button>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/wordDisplay.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/animations.js"></script>
+</body>
+</html>
