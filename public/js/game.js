@@ -438,6 +438,14 @@
         container.appendChild(sep);
       }
     }
+
+    // Auto-scroll to bottom after new messages render
+    var totalAnimTime = animDelay * 120 + 400;
+    setTimeout(function () {
+      container.scrollTop = container.scrollHeight;
+    }, totalAnimTime);
+    // Also scroll immediately for already-visible content
+    container.scrollTop = container.scrollHeight;
   }
 
   /* ----------------------------------------------------------
@@ -644,7 +652,6 @@
       inlineContainer.style.width = '100%';
       inlineContainer.style.height = '100%';
       inlineContainer.style.zIndex = '10';
-      inlineContainer.style.background = 'rgba(0,0,0,0.85)';
       mainArea.style.position = 'relative';
       mainArea.appendChild(inlineContainer);
       if (window.Animations && window.Animations.playNuclearWar) {

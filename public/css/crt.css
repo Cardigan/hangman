@@ -234,14 +234,15 @@ html, body {
 #consequence-display,
 .consequence-display {
   margin-top: 8px;
-  padding: 8px 10px;
+  padding: 12px 14px;
   border: 1px solid var(--green-border);
   background: rgba(0, 10, 0, 0.7);
   font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.8;
   overflow-y: auto;
-  max-height: 200px;
+  flex: 1 1 auto;
+  min-height: 120px;
   transition: border-color 0.4s ease, background 0.4s ease;
 }
 
@@ -252,8 +253,8 @@ html, body {
 .consequence-header {
   color: var(--green-dim);
   text-align: center;
-  margin-bottom: 6px;
-  font-size: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
   letter-spacing: 2px;
 }
 
@@ -843,16 +844,25 @@ button:active {
    ============================================================ */
 
 #nuke-war-overlay,
+#nuke-war-inline,
 .nuke-overlay {
   position: fixed;
   top: 0; left: 0;
   width: 100vw;
   height: 100vh;
-  background: #000;
+  background: rgba(0, 0, 0, 0.75);
   z-index: 9999;
   overflow: hidden;
   font-family: var(--font-mono);
   color: var(--green);
+}
+
+#nuke-war-inline {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 10;
 }
 
 .nuke-canvas {
