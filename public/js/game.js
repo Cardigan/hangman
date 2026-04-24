@@ -312,31 +312,57 @@
     [], // Stage 0: no misses
     [ // Stage 1: SAFETY DISENGAGED
       { text: 'INITIAL TARGET ASSESSMENT: 14 CITIES', level: 'green' },
-      { text: 'PROJECTED CIVILIAN CASUALTIES: CALCULATING...', level: 'green' }
+      { text: 'PROJECTED CIVILIAN CASUALTIES: CALCULATING...', level: 'green' },
+      { text: 'PROBABILITY OF MAD MAX STYLE FUTURE: 12%', level: 'green' },
+      { text: 'YOUR TINDER MATCHES: ABOUT TO BECOME IRRELEVANT', level: 'green' }
     ],
     [ // Stage 2: TARGETING LOCKED
       { text: 'PRIMARY TARGETS: WASHINGTON DC, NEW YORK, CHICAGO, LOS ANGELES', level: 'amber' },
-      { text: 'PROJECTED CASUALTIES: 28,000,000', level: 'amber' }
+      { text: 'PROJECTED CASUALTIES: 28,000,000', level: 'amber' },
+      { text: 'LIKELIHOOD OF MUTANT BABY GROWING INSIDE YOU: 15%', level: 'amber' },
+      { text: 'YOUR STUDENT LOANS: FINALLY NOT YOUR BIGGEST PROBLEM', level: 'amber' },
+      { text: 'CHANCE OF EVER SEEING ANOTHER SUNSET: DECREASING', level: 'amber' }
     ],
     [ // Stage 3: PRIMER READY
       { text: 'SECONDARY TARGETS: SEATTLE, HOUSTON, MIAMI, BOSTON, DENVER, ATLANTA', level: 'amber' },
       { text: 'PROJECTED CASUALTIES: 67,000,000', level: 'amber' },
-      { text: 'NUCLEAR WINTER PROBABILITY: 43%', level: 'amber' }
+      { text: 'NUCLEAR WINTER PROBABILITY: 43%', level: 'amber' },
+      { text: 'PROBABILITY OF MAD MAX FUTURE INCREASED TO 48%', level: 'amber' },
+      { text: '...BUT NOT COOL LIKE IN THE MOVIE', level: 'amber' },
+      { text: 'WORLDWIDE PIZZA DELIVERY: PERMANENTLY DISCONTINUED', level: 'amber' },
+      { text: 'YOUR MOM WILL DEFINITELY BLAME YOU FOR THIS', level: 'amber' }
     ],
     [ // Stage 4: PREFLIGHT CHECKED
       { text: 'RETALIATORY STRIKE AUTHORIZED', level: 'red' },
       { text: 'MUTUAL ASSURED DESTRUCTION PROTOCOL ENGAGED', level: 'red' },
-      { text: 'PROJECTED GLOBAL CASUALTIES: 150,000,000', level: 'red' }
+      { text: 'PROJECTED GLOBAL CASUALTIES: 150,000,000', level: 'red' },
+      { text: 'LIKELIHOOD OF MUTANT BABY INSIDE YOU: 60%', level: 'red' },
+      { text: 'WORLDWIDE CASUALTY RATE: 70%', level: 'red' },
+      { text: 'IT IS GOING TO BE YOUR FAULT', level: 'red' },
+      { text: 'YOUR BROWSER HISTORY WILL SURVIVE IN A GOVERNMENT BUNKER', level: 'red' },
+      { text: 'COCKROACHES NOW STATISTICALLY MORE LIKELY TO SURVIVE THAN YOU', level: 'red' }
     ],
     [ // Stage 5: WARHEAD ARMED
       { text: 'ESTIMATED AFTERMATH: GLOBAL CROP FAILURE 3-5 YEARS', level: 'red' },
       { text: 'INFRASTRUCTURE COLLAPSE: COMPLETE', level: 'red' },
-      { text: 'CIVILIZATION RECOVERY TIME: UNKNOWN', level: 'red' }
+      { text: 'PROBABILITY OF MAD MAX FUTURE: 80%', level: 'red' },
+      { text: 'STILL NOT COOL LIKE IN THE MOVIE. YOU WON\'T HAVE A COOL CAR.', level: 'red' },
+      { text: 'WIFI: PERMANENTLY OFFLINE. LET THAT SINK IN.', level: 'red' },
+      { text: 'YOUR SURVIVAL SKILLS FROM CAMPING THAT ONE TIME: INSUFFICIENT', level: 'red' },
+      { text: 'EVERY PET ON EARTH IS NOW LOOKING AT YOU WITH DISAPPOINTMENT', level: 'red' },
+      { text: 'CIVILIZATION RECOVERY TIME: UNKNOWN', level: 'red' },
+      { text: 'YOU HAD ONE JOB. LITERALLY ONE.', level: 'red' }
     ],
     [ // Stage 6: READY TO FIRE
       { text: '\u26A0 THIS IS YOUR LAST CHANCE \u26A0', level: 'critical' },
       { text: 'ONE MORE FAILED ATTEMPT = TOTAL NUCLEAR WAR', level: 'critical' },
-      { text: 'PROJECTED EXTINCTION EVENT PROBABILITY: 67%', level: 'critical' }
+      { text: 'PROJECTED EXTINCTION EVENT PROBABILITY: 94%', level: 'critical' },
+      { text: 'LIKELIHOOD OF MUTANT BABY: 100%. CONGRATS IT\'S A BOY.', level: 'critical' },
+      { text: 'EVERY PERSON WHO EVER BELIEVED IN YOU IS WATCHING', level: 'critical' },
+      { text: 'FUTURE HISTORIANS WILL SPELL YOUR NAME WRONG', level: 'critical' },
+      { text: 'YOUR LAST MEAL SHOULD HAVE BEEN BETTER THAN WHAT YOU HAD', level: 'critical' },
+      { text: 'THE COCKROACHES ARE ALREADY WRITING YOUR OBITUARY', level: 'critical' },
+      { text: 'SERIOUSLY. JUST GET THIS NEXT ONE RIGHT. PLEASE.', level: 'critical' }
     ]
   ];
 
@@ -606,13 +632,23 @@
     showEndOverlay(endstate, 'lost');
     setAllStagesActive();
 
-    // Launch full-screen nuclear war animation after a brief delay
+    // Play nuclear war animation INLINE in the main area (no screen change)
     setTimeout(function () {
-      var overlay = document.createElement('div');
-      overlay.id = 'nuke-war-overlay';
-      document.body.appendChild(overlay);
+      var mainArea = document.getElementById('main-area');
+      if (!mainArea) return;
+      var inlineContainer = document.createElement('div');
+      inlineContainer.id = 'nuke-war-inline';
+      inlineContainer.style.position = 'absolute';
+      inlineContainer.style.top = '0';
+      inlineContainer.style.left = '0';
+      inlineContainer.style.width = '100%';
+      inlineContainer.style.height = '100%';
+      inlineContainer.style.zIndex = '10';
+      inlineContainer.style.background = 'rgba(0,0,0,0.85)';
+      mainArea.style.position = 'relative';
+      mainArea.appendChild(inlineContainer);
       if (window.Animations && window.Animations.playNuclearWar) {
-        window.Animations.playNuclearWar(overlay);
+        window.Animations.playNuclearWar(inlineContainer);
       }
     }, 1800);
   }
