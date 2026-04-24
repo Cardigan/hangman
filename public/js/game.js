@@ -127,9 +127,6 @@
   function renderPlayerState(state) {
     if (!state) return;
     updateMyDisplay(state);
-    if (typeof WordDisplay !== 'undefined' && WordDisplay.update) {
-      WordDisplay.update(state);
-    }
   }
 
   /* ----------------------------------------------------------

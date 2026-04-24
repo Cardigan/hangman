@@ -90,6 +90,13 @@
       Chat.addSystemMessage('CONNECTED TO NORAD DEFENSE NETWORK');
     }
 
+    if (window.Game) {
+      Game.init(socket, gameState, playerState);
+    }
+    if (window.WordDisplay) {
+      WordDisplay.init();
+    }
+
     updateAllDisplays(gameState, playerState);
   }
 
@@ -132,9 +139,21 @@
 
     updateAllDisplays(gameState, playerState);
 
-    if (data.gameOver) {
+    if (data.gameOver && data.username === username) {
       var msg = data.won ? 'LAUNCH SEQUENCE ABORTED — WORD DECODED' : 'LAUNCH CONFIRMED — DETONATION IMMINENT';
       if (window.Chat) Chat.addSystemMessage(msg);
+      if (window.Game) {
+        if (data.won) {
+          Game.showWinScreen();
+        } else {
+          Game.showLoseScreen();
+        }
+      }
+    } else if (data.gameOver) {
+      var otherMsg = data.won
+        ? data.username + ' ABORTED THEIR LAUNCH'
+        : data.username + ' FAILED — MISSILE LAUNCHED';
+      if (window.Chat) Chat.addSystemMessage(otherMsg);
     }
   });
 
@@ -150,14 +169,18 @@
     updateAllDisplays(gameState, playerState);
   });
 
+  socket.on('guessError', function (data) {
+    if (window.Chat) Chat.addSystemMessage('ERROR: ' + (data.error || 'UNKNOWN ERROR'));
+  });
+
   // --- Display Helper ---
 
   function updateAllDisplays(gs, ps) {
     if (window.Game && typeof Game.updateLaunchSequence === 'function') {
-      Game.updateLaunchSequence(gs, ps);
+      Game.updateLaunchSequence(gs, mySocketId);
     }
     if (window.WordDisplay && typeof WordDisplay.update === 'function') {
-      WordDisplay.update(gs, ps);
+      WordDisplay.update(gs, mySocketId);
     }
   }
 
