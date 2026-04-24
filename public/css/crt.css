@@ -1360,3 +1360,26 @@ button:active {
   opacity: 0;
   transition: opacity 0.5s ease;
 }
+
+/* --- Word Reveal on Lose Screen --- */
+.word-reveal {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 24px;
+  color: var(--red, #ff0000);
+  text-shadow: 0 0 10px var(--red, #ff0000);
+  z-index: 20;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  font-family: 'Courier New', monospace;
+  animation: consequence-flash 0.5s ease-out;
+}
+.word-reveal-word {
+  color: #fff;
+  font-size: 32px;
+  letter-spacing: 8px;
+  text-shadow: 0 0 15px #fff, 0 0 30px var(--red, #ff0000);
+}

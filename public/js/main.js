@@ -107,9 +107,10 @@
     var text = (gameInput.value || '').trim();
     if (!text) return;
 
-    var guessMatch = text.match(/^\?([A-Za-z])$/);
-    if (guessMatch) {
-      socket.emit('guess', { letter: guessMatch[1].toUpperCase() });
+    if (/^[A-Za-z]$/.test(text)) {
+      socket.emit('guess', { letter: text.toUpperCase() });
+    } else if (text.startsWith('?') && /^[A-Za-z]$/.test(text.slice(1))) {
+      socket.emit('guess', { letter: text.slice(1).toUpperCase() });
     } else {
       socket.emit('chatMessage', { message: text });
     }
@@ -147,6 +148,7 @@
         if (data.won) {
           Game.showWinScreen();
         } else {
+          if (window.Game && Game.setRevealWord) Game.setRevealWord(data.gameState.word || '???');
           Game.showLoseScreen();
         }
       }

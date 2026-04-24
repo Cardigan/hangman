@@ -43,6 +43,17 @@
       window.WorldMap.init();
     }
 
+    // Start audio on first user interaction (AudioContext requirement)
+    if (window.AudioModule) {
+      var startAudio = function() {
+        AudioModule.startMusic();
+        document.removeEventListener('click', startAudio);
+        document.removeEventListener('keydown', startAudio);
+      };
+      document.addEventListener('click', startAudio);
+      document.addEventListener('keydown', startAudio);
+    }
+
     if (gameState) {
       updateMyDisplay(gameState);
     }
@@ -70,7 +81,7 @@
     { text: '', cls: 'briefing-blank' },
     { text: '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 TERMINAL CONTROLS \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501', cls: 'briefing-divider' },
     { text: '', cls: 'briefing-blank' },
-    { text: 'TYPE ?X TO GUESS A LETTER  (e.g. ?A, ?E, ?T)', cls: 'briefing-highlight' },
+    { text: 'TYPE A SINGLE LETTER TO GUESS  (e.g. A, E, T)', cls: 'briefing-highlight' },
     { text: 'ALL OTHER INPUT GOES TO CHAT', cls: '' },
     { text: '', cls: 'briefing-blank' },
     { text: '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 MISSION PARAMETERS \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501', cls: 'briefing-divider' },
@@ -237,6 +248,11 @@
     // Update world map escalation
     if (window.WorldMap) {
       window.WorldMap.setStage(stage);
+    }
+
+    // Update audio intensity
+    if (window.AudioModule) {
+      AudioModule.setIntensity(stage);
     }
 
     var endstate = document.getElementById('launch-endstate');
@@ -412,6 +428,11 @@
         if (isNewStage) {
           line.classList.add('consequence-new');
           line.style.animationDelay = (animDelay * 120) + 'ms';
+          (function(d) {
+            setTimeout(function() {
+              if (window.AudioModule) AudioModule.playTyping();
+            }, d * 120);
+          })(animDelay);
           animDelay++;
         }
 
@@ -427,13 +448,18 @@
       }
     }
 
-    // Auto-scroll to bottom after new messages render
-    var totalAnimTime = animDelay * 120 + 400;
+    // Scroll after each animated line appears
+    for (var scrollIdx = 0; scrollIdx <= animDelay; scrollIdx++) {
+      (function(delay) {
+        setTimeout(function () {
+          container.scrollTop = container.scrollHeight;
+        }, delay * 120 + 50);
+      })(scrollIdx);
+    }
+    // Final scroll after all animations complete
     setTimeout(function () {
       container.scrollTop = container.scrollHeight;
-    }, totalAnimTime);
-    // Also scroll immediately for already-visible content
-    container.scrollTop = container.scrollHeight;
+    }, animDelay * 120 + 500);
   }
 
   /* ----------------------------------------------------------
@@ -628,6 +654,13 @@
     showEndOverlay(endstate, 'lost');
     setAllStagesActive();
 
+    // Show the answer
+    var revealEl = document.createElement('div');
+    revealEl.className = 'word-reveal';
+    revealEl.innerHTML = 'THE PASSWORD WAS: <span class="word-reveal-word">' + escapeHtml(window._revealWord || '???') + '</span>';
+    var mainArea = document.getElementById('main-area');
+    if (mainArea) mainArea.appendChild(revealEl);
+
     // Play nuclear war animation INLINE in the main area (no screen change)
     setTimeout(function () {
       var mainArea = document.getElementById('main-area');
@@ -664,6 +697,7 @@
     init: init,
     updateLaunchSequence: updateLaunchSequence,
     showWinScreen: showWinScreen,
-    showLoseScreen: showLoseScreen
+    showLoseScreen: showLoseScreen,
+    setRevealWord: function(w) { window._revealWord = w; }
   };
 })();
