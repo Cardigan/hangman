@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
 
     const publicState = gameManager.getRoomPublicState(roomCode);
     io.to(roomCode).emit('playerJoined', { username, gameState: publicState });
-    console.log(`[joinRoom] ${username} joined room ${roomCode}`);
+    console.log(`[joinRoom] ${username} joined room ${roomCode} (word: ${result.player.word})`);
     if (typeof cb === 'function') {
       cb({
         success: true,
@@ -74,7 +74,9 @@ io.on('connection', (socket) => {
       return;
     }
 
-    console.log(`[guess] ${username} guessed "${letter}" in room ${roomCode} — ${result.hit ? 'HIT' : 'MISS'}`);
+    const room = gameManager.getRoom(roomCode);
+    const playerWord = room && room.players[socket.id] ? room.players[socket.id].word : '???';
+    console.log(`[guess] ${username} guessed "${letter}" in room ${roomCode} — ${result.hit ? 'HIT' : 'MISS'} (word: ${playerWord}, progress: ${result.player.maskedWord.map(c => c || '_').join('')})`);
 
     io.to(roomCode).emit('guessResult', {
       username,
